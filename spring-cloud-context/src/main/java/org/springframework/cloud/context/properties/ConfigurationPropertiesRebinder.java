@@ -38,6 +38,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 /**
+ * TODO: 当EnvironmentChangeEvent触发的时候 重新绑定ConfigurationProperty对象的值
+ *
  * Listens for {@link EnvironmentChangeEvent} and rebinds beans that were bound to the
  * {@link Environment} using {@link ConfigurationProperties
  * <code>@ConfigurationProperties</code>}. When these beans are re-bound and
@@ -79,33 +81,43 @@ public class ConfigurationPropertiesRebinder
 
 	@ManagedOperation
 	public void rebind() {
+		// TODO: 清空所有的异常错误
 		this.errors.clear();
+		// TODO: 拿到被@ConfigurationProperty标注的所有的bean的名字
 		for (String name : this.beans.getBeanNames()) {
+			// TODO: 进行重新绑定
 			rebind(name);
 		}
 	}
 
 	@ManagedOperation
 	public boolean rebind(String name) {
+		// TODO: 如果你要重新绑定的name在beans里面不存在，那就直接返回false了
 		if (!this.beans.getBeanNames().contains(name)) {
 			return false;
 		}
 		if (this.applicationContext != null) {
 			try {
+				// TODO: 把bean拿出来
 				Object bean = this.applicationContext.getBean(name);
+				// TODO: 如果是代理类，就把它原始的bean拿出来
 				if (AopUtils.isAopProxy(bean)) {
 					bean = ProxyUtils.getTargetObject(bean);
 				}
 				if (bean != null) {
+					// TODO: 不能刷新的配置包含 当前配置那就直接返回false了
 					// TODO: determine a more general approach to fix this.
 					// see https://github.com/spring-cloud/spring-cloud-commons/issues/571
 					if (getNeverRefreshable().contains(bean.getClass().getName())) {
 						return false; // ignore
 					}
+					// TODO: 把这个bean进行销毁，直接就destroy了, 调用生命周期的destroy方法
 					this.applicationContext.getAutowireCapableBeanFactory()
 							.destroyBean(bean);
+					// TODO: 进行重新初始化，这个过程执行完成之后，最新的配置就赋值上去了
 					this.applicationContext.getAutowireCapableBeanFactory()
 							.initializeBean(bean, name);
+					// TODO: 最后返回成功
 					return true;
 				}
 			}
@@ -121,6 +133,11 @@ public class ConfigurationPropertiesRebinder
 		return false;
 	}
 
+
+	/**
+	 * 返回不能刷新的配置
+	 * @return
+	 */
 	@ManagedAttribute
 	public Set<String> getNeverRefreshable() {
 		String neverRefresh = this.applicationContext.getEnvironment().getProperty(
@@ -139,6 +156,7 @@ public class ConfigurationPropertiesRebinder
 		if (this.applicationContext.equals(event.getSource())
 				// Backwards compatible
 				|| event.getKeys().equals(event.getSource())) {
+			// TODO: 进行重新绑定
 			rebind();
 		}
 	}

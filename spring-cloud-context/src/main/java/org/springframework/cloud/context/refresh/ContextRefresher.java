@@ -44,6 +44,7 @@ import org.springframework.core.env.StandardEnvironment;
 import org.springframework.web.context.support.StandardServletEnvironment;
 
 /**
+ * TODO: 负责刷新环境 Environment
  * @author Dave Syer
  * @author Venil Noronha
  */
@@ -82,17 +83,28 @@ public class ContextRefresher {
 	}
 
 	public synchronized Set<String> refresh() {
+		// TODO: 更新环境environment
 		Set<String> keys = refreshEnvironment();
+		// TODO: 调用RefreshScope的refreshAll方法
 		this.scope.refreshAll();
 		return keys;
 	}
 
+	/**
+	 * TODO: refreshEnvironment方法通过创建一个新的ConfigurableApplicationContext去获取最新的environment，然后将新的environment的PropertySouce
+	 * TODO: 替换当前Environment的，这样就实现了环境刷新, 此方法可能比较耗时
+	 *
+	 * @return
+	 */
 	public synchronized Set<String> refreshEnvironment() {
 		Map<String, Object> before = extract(
 				this.context.getEnvironment().getPropertySources());
 		addConfigFilesToEnvironment();
 		Set<String> keys = changes(before,
 				extract(this.context.getEnvironment().getPropertySources())).keySet();
+		// TODO: refreshEnvironment更新完environment后会发送一个EnvironmentChangeEvent事件，该事件会携带本次更新的配置项的key
+		// TODO: 如果是监听EnvironmentChangeEvent事件感知配置文件改变，那么需要注意的是，在监听EnvironmentChangeEvent事件时，调用动态配置
+		// TODO: bean的代理对象的getXXX()方法获取到的字段的值还是旧的，因为RefreshScope的refreshAll方法还没有被调用
 		this.context.publishEvent(new EnvironmentChangeEvent(this.context, keys));
 		return keys;
 	}

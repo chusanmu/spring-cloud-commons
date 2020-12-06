@@ -91,10 +91,12 @@ public class PropertySourceBootstrapConfiguration implements
 	@Override
 	public void initialize(ConfigurableApplicationContext applicationContext) {
 		List<PropertySource<?>> composite = new ArrayList<>();
+		// TODO: 排序所有的propertySourceLocators
 		AnnotationAwareOrderComparator.sort(this.propertySourceLocators);
 		boolean empty = true;
 		ConfigurableEnvironment environment = applicationContext.getEnvironment();
 		for (PropertySourceLocator locator : this.propertySourceLocators) {
+			// TODO: 获取propertySource
 			Collection<PropertySource<?>> source = locator.locateCollection(environment);
 			if (source == null || source.size() == 0) {
 				continue;

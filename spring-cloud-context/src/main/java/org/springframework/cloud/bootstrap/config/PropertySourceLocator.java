@@ -47,6 +47,12 @@ public interface PropertySourceLocator {
 		return locateCollection(this, environment);
 	}
 
+	/**
+	 * 将environment中的propertySource转为collection
+	 * @param locator
+	 * @param environment
+	 * @return
+	 */
 	static Collection<PropertySource<?>> locateCollection(PropertySourceLocator locator,
 			Environment environment) {
 		PropertySource<?> propertySource = locator.locate(environment);

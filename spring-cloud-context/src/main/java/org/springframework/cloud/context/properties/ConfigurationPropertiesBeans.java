@@ -68,6 +68,7 @@ public class ConfigurationPropertiesBeans
 					.getBeanNamesForType(ConfigurationPropertiesBeans.class);
 			if (names.length == 1) {
 				this.parent = (ConfigurationPropertiesBeans) listable.getBean(names[0]);
+				// TODO: 把之前存在的全部加进去
 				this.beans.putAll(this.parent.beans);
 			}
 		}
@@ -87,12 +88,16 @@ public class ConfigurationPropertiesBeans
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName)
 			throws BeansException {
+		// TODO: 判断这个bean是否是refreshScope的，如果是的，直接返回这个bean
 		if (isRefreshScoped(beanName)) {
 			return bean;
 		}
+		// TODO: 并且不是refreshScope的
+		// TODO: 这句代码执行的就是，如果你是 ConfigurationProperties 标注的bean，那么就拿到你，否则返回null
 		ConfigurationPropertiesBean propertiesBean = ConfigurationPropertiesBean
 				.get(this.applicationContext, bean, beanName);
 		if (propertiesBean != null) {
+			// TODO: 放进缓存beans中去
 			this.beans.put(beanName, propertiesBean);
 		}
 		return bean;
@@ -101,7 +106,9 @@ public class ConfigurationPropertiesBeans
 	private boolean isRefreshScoped(String beanName) {
 		if (this.refreshScope == null && !this.refreshScopeInitialized) {
 			this.refreshScopeInitialized = true;
+			// TODO: 拿到这个beanFactory所注册的所有的scope
 			for (String scope : this.beanFactory.getRegisteredScopeNames()) {
+				// TODO: 如果有refreshScope就设置进去
 				if (this.beanFactory.getRegisteredScope(
 						scope) instanceof org.springframework.cloud.context.scope.refresh.RefreshScope) {
 					this.refreshScope = scope;
@@ -109,9 +116,11 @@ public class ConfigurationPropertiesBeans
 				}
 			}
 		}
+		// TODO: 如果beanName为空，或者 refreshScope也是空，就直接返回false
 		if (beanName == null || this.refreshScope == null) {
 			return false;
 		}
+		// TODO: 当前beanFactory有这个beanDefinition,并且这个bean的scope是refreshScope就直接返回true
 		return this.beanFactory.containsBeanDefinition(beanName) && this.refreshScope
 				.equals(this.beanFactory.getBeanDefinition(beanName).getScope());
 	}

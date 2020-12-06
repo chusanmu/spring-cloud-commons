@@ -31,6 +31,7 @@ import org.springframework.jmx.export.annotation.ManagedOperation;
 import org.springframework.jmx.export.annotation.ManagedResource;
 
 /**
+ * TODO：负责销毁@RefreshScope声明的动态配置bean，即调用bean生命周期的销毁方法
  * <p>
  * A Scope implementation that allows for beans to be refreshed dynamically at runtime
  * (see {@link #refresh(String)} and {@link #refreshAll()}). If a bean is refreshed then
@@ -151,7 +152,10 @@ public class RefreshScope extends GenericScope implements ApplicationContextAwar
 	@ManagedOperation(description = "Dispose of the current instance of all beans "
 			+ "in this scope and force a refresh on next method execution.")
 	public void refreshAll() {
+		// TODO: 销毁旧的动态配置的bean，然后发送一个refreshScopeRefreshedEvent事件
 		super.destroy();
+		// TODO: 如果监听RefreshScopeRefreshedEvent事件实现感知配置改变，那么在监听到RefreshScopeRefreshEvent事件时，就可以调用动态配置bean
+		// TODO: 的代理对象的getXXX方法获取最新的配置
 		this.context.publishEvent(new RefreshScopeRefreshedEvent());
 	}
 

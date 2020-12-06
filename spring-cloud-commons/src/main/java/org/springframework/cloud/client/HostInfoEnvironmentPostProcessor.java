@@ -45,23 +45,37 @@ public class HostInfoEnvironmentPostProcessor
 		return this.order;
 	}
 
+	/**
+	 * 往环境中添加了 当前机器的ip和host信息
+	 * @param environment
+	 * @param application
+	 */
 	@Override
 	public void postProcessEnvironment(ConfigurableEnvironment environment,
 			SpringApplication application) {
 		InetUtils.HostInfo hostInfo = getFirstNonLoopbackHostInfo(environment);
 		LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+		// TODO: 通过这俩属性，便可获取当前运行机器的host和ip信息
 		map.put("spring.cloud.client.hostname", hostInfo.getHostname());
 		map.put("spring.cloud.client.ip-address", hostInfo.getIpAddress());
+		// TODO: 最后加入到了环境中
 		MapPropertySource propertySource = new MapPropertySource(
 				"springCloudClientHostInfo", map);
 		environment.getPropertySources().addLast(propertySource);
 	}
 
+	/**
+	 * 获取本地非回环地址
+	 * @param environment
+	 * @return
+	 */
 	private HostInfo getFirstNonLoopbackHostInfo(ConfigurableEnvironment environment) {
 		InetUtilsProperties target = new InetUtilsProperties();
 		ConfigurationPropertySources.attach(environment);
+		// TODO: 将target绑定至environment中
 		Binder.get(environment).bind(InetUtilsProperties.PREFIX,
 				Bindable.ofInstance(target));
+		// TODO: 通过InetUtils获取 本地非回环地址
 		try (InetUtils utils = new InetUtils(target)) {
 			return utils.findFirstNonLoopbackHostInfo();
 		}

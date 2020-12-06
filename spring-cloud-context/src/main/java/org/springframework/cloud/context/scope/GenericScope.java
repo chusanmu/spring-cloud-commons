@@ -244,21 +244,32 @@ public class GenericScope implements Scope, BeanFactoryPostProcessor,
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory)
 			throws BeansException {
 		this.beanFactory = beanFactory;
+		// TODO: 注册scope,把它自己注册进去了
 		beanFactory.registerScope(this.name, this);
 		setSerializationId(beanFactory);
 	}
 
+	/**
+	 * TODO: 在容器启动的时候，会调用此方法
+	 *
+	 * @param registry
+	 * @throws BeansException
+	 */
 	@Override
 	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry)
 			throws BeansException {
+		// TODO: 把所有的beanDefinition都拿出来了
 		for (String name : registry.getBeanDefinitionNames()) {
 			BeanDefinition definition = registry.getBeanDefinition(name);
+			// TODO: 将所有的scope为refresh，且bean类型为ScopedProxyFactoryBean的beanDefinition都找出来，然后将bean的类型
+			// TODO: 全部替换为LockedScopedProxyFactoryBean
 			if (definition instanceof RootBeanDefinition) {
 				RootBeanDefinition root = (RootBeanDefinition) definition;
 				if (root.getDecoratedDefinition() != null && root.hasBeanClass()
 						&& root.getBeanClass() == ScopedProxyFactoryBean.class) {
 					if (getName().equals(root.getDecoratedDefinition().getBeanDefinition()
 							.getScope())) {
+						// TODO: 重新设置beanClass
 						root.setBeanClass(LockedScopedProxyFactoryBean.class);
 						root.getConstructorArgumentValues().addGenericArgumentValue(this);
 						// surprising that a scoped proxy bean definition is not already
@@ -481,6 +492,7 @@ public class GenericScope implements Scope, BeanFactoryPostProcessor,
 					|| isScopedObjectGetTargetObject(method)) {
 				return invocation.proceed();
 			}
+			// TODO: 首先获取代理对象，然后通过反射调用目标方法
 			Object proxy = getObject();
 			ReadWriteLock readWriteLock = this.scope.getLock(this.targetBeanName);
 			if (readWriteLock == null) {
@@ -493,10 +505,13 @@ public class GenericScope implements Scope, BeanFactoryPostProcessor,
 			Lock lock = readWriteLock.readLock();
 			lock.lock();
 			try {
+				// TODO:
 				if (proxy instanceof Advised) {
 					Advised advised = (Advised) proxy;
 					ReflectionUtils.makeAccessible(method);
 					return ReflectionUtils.invokeMethod(method,
+							// TODO: 传入的目标是通过对象的TargetSource获取的，也就是从bean工厂中根据目标beanName获取的，只要配置不改变
+							// TODO: 不触发RefreshScope的refreshAll方法执行，就会从bean工厂获取一次，此后都从refreshScope缓存中取
 							advised.getTargetSource().getTarget(),
 							invocation.getArguments());
 				}
